@@ -1,0 +1,9 @@
+Old/
+OrinsSBCcode/
+__pycache__/
+SBCcode/
+pedBACKUP102017.py
+test.py
+.svn/
+*.pycache
+*.py~
