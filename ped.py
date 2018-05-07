@@ -54,6 +54,7 @@ verbosity = logging.INFO
 DEFAULT_FONT=("Arial", 20)
 
 class PopUpHandler(logging.Handler):
+    # x
     def __init__(self):
         logging.Handler.__init__(self)
         self.setFormatter(logging.Formatter(fmt='%(message)s'))
@@ -102,7 +103,8 @@ class Application(tk.Frame):
         self.raw_directory = '/bluearc/storage/SBC-17-data/'
         self.base_directory, end = re.compile('\\w*-\\w*-data').split(self.raw_directory)
         self.scan_directory = '/coupp/data/home/coupp/scan_output_SBC-17/'
-        self.reco_directory = '/pnfs/coupp/persistent/grid_output/SBC-17/output/'
+        #self.reco_directory = '/pnfs/coupp/persistent/grid_output/SBC-17/output/'
+        self.reco_directory = ""
         self.ped_directory = '/nashome/j/jgresl/Desktop/EventViewer/PEDsvn'
         self.config_file_directory = os.path.join(self.ped_directory, 'configs')
 

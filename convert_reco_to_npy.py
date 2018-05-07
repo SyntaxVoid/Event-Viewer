@@ -64,7 +64,7 @@ def load_reco(filename):
                     columns.append(column)
                 column += 1
     try:
-        old_events = np.load(os.path.join(reco_directory, 'reco_events.npy'))
+        old_events = np.load(os.path.join(reco_directory, 'NOTNOWreco_events.npy'))
     except FileNotFoundError:
         old_events = np.empty((0,), dtype=np.dtype(dt))
 
