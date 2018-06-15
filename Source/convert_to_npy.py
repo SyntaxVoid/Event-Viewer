@@ -3,7 +3,9 @@
 import sys
 import os
 import time
+import re
 import numpy as np
+
 
 import SBCcode.DataHandling.ReadBinary
 
@@ -119,19 +121,72 @@ def bin_to_npy(reco_bin_file, np_save_output, verbose=False):
     return
 
 
-def main(*args, use_shell=True, verbose=False):
+def txt_to_npy(reco_txt_file, np_save_output, verbose=False):
+    def _verbose(s):
+        if verbose:
+            print(s)
+        return
+    _verbose("Using file '{}' to create '{}'".format(reco_txt_file,
+                                                     np_save_output))
+    start_time = time.time()
+    with open(reco_txt_file) as f:
+        files = f.readline()  # <-- Unused but it pushes the buffer forward.. and it IS the string of filenames anyway.
+        fields = f.readline().split()
+        formats = f.readline().split()
+        dt = []
+        columns = []
+        cur_column = 0
+        for field in fields:
+            form = formats[cur_column]
+            for x in dtypes:
+                if x in form:
+                    dtype = dtypes[x]
+            match = re.search('.*\((.*)\)', field)
+            if match:
+                dimensions = [int(x) for x in match.groups()[0].split(',')]
+                length = np.prod(dimensions)
+                types = formats[cur_column:cur_column + length]  # <-- Not important
+                if len(set(types)) > 1:
+                    print("Cannot parse {} with types {} because mixed types are not supported".format(field, types))
+                    return
+                if (len(dimensions) == 1) and (field not in skip):  # skip loading nd-arrays to save memory
+                    columns.extend(list(range(cur_column, cur_column + length)))
+                    dt.append((field, (dtype, dimensions)))
+                cur_column += length
+            else:
+                if field not in skip:
+                    dt.append((field, dtype))
+                    columns.append(cur_column)
+                cur_column += 1
+    old_events = np.empty((0,), dtype=np.dtype(dt))
+    skip_header = 6 + len(old_events)
+    _verbose('skipping {} reco lines which have already been parsed'.format(len(old_events)))
+    out = np.genfromtxt(reco_txt_file, dtype=old_events.dtype, delimiter="  ", skip_header=skip_header,
+                        usecols=columns)
+    np.save(np_save_output, out)
+    process_time = time.time()
+    _verbose("Successfully processed {} events in {}s".format(len(out), process_time-start_time))
+    return
+
+
+def main(*args, mode="binary", use_shell=True, verbose=False):
     if use_shell:
         if len(args) != 3:
             print("Incorrect usage. Proper usage is:\n")
-            print("python bin_to_npy.py <location-of-merged_all.bin> <location-where-you-want-reco_events.npy>")
+            print("python bin_to_npy.py <directory-of-merged_all-file> -mode=<text or binary>")
             return
-        bin_in = args[1]
-        npy_out = args[2]
+        reco_dir = args[1]
+        print(args)
+        mode = args[2].split("=")[-1]
+        if mode not in ["text", "binary"]:
+            print("Invalid mode: '{}'. Must be either 'text' or 'binary'".format(mode))
+            return
     else:
-        bin_in = args[0]
-        npy_out = args[1]
-    if not os.path.isfile(bin_in):
-        print("No file exists at '{}'\nAborting.".format(bin_in))
+        reco_dir = args[0]
+    file_in = os.path.join(reco_dir, "merged_all." + "bin" if mode == "binary" else "txt")
+    npy_out = os.path.join(reco_dir, "reco_events.npy")
+    if not os.path.isfile(file_in):
+        print("No file exists at '{}'\nAborting.".format(file_in))
         return
     if os.path.isfile(npy_out):
         while True:
@@ -147,18 +202,22 @@ def main(*args, use_shell=True, verbose=False):
     if not os.path.isdir(os.path.dirname(npy_out)):
         print("Invalid path of output file: '{}'".format(npy_out))
         return
-    bin_to_npy(bin_in, npy_out, verbose=verbose)
+    if mode == "binary":
+        bin_to_npy(file_in, npy_out, verbose=verbose)
+    if mode == "text":
+        txt_to_npy(file_in, npy_out, verbose=verbose)
     return
 
 if __name__ == "__main__":
     # If you would like to hard-code the paths in this file, you can! Set the use_command_line
     # variable to False and then set the bin_in and npy_out paths appropriately.
-    use_command_line = False    # If use_command_line is True, then bin_in and npy_out will
+    use_command_line = True     # If use_command_line is True, then bin_in and npy_out will
                                 # automatically be replaced with the command line arguments.
     verbose = True
-    bin_in = "/pnfs/coupp/persistent/grid_output/SBC-17/output/merged_all.bin"
+    mode = "binary"
+    reco_dir = "/pnfs/coupp/persistent/grid_output/SBC-17/output"
     npy_out = "/pnfs/coupp/persistent/grid_output/SBC-17/output/reco_events.npy"
     if use_command_line:
         main(*sys.argv, use_shell=True, verbose=verbose)
     else:
-        main(bin_in, npy_out, use_shell=False, verbose=verbose)
+        main(reco_dir, mode=mode, use_shell=False, verbose=verbose)
