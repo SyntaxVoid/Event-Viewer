@@ -12,12 +12,14 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 from PIL import ImageTk, Image
-from Source.WidgetTooltip import WidgetToolTip
-from Source.ErrorWindow import ErrorWindow
+from EventViewer.Source.WidgetTooltip import WidgetToolTip
+from EventViewer.Source.ErrorWindow import ErrorWindow
+
+
 
 DEFAULT_FONT = ("Consolas", 14)
 HEADER_FONT = (DEFAULT_FONT[0], int(DEFAULT_FONT[1]*1.3))
-ROOT_TITLE = "Event-Viewer Setup"
+ROOT_TITLE = "EventViewer Setup"
 
 def run_setup():
     exit_code, _ = run_intro()
@@ -115,6 +117,7 @@ def idk_yet():
     path_tooltips = ["Directory where raw_events.npy is located",
                      "Directory where handscans will go?? Disabled currently",
                      "Directory of reconstructed data (where reco_events.npy is located)"]
+
     path_stringvars = []
     for n, label in enumerate(path_labels):
         t_frame = tk.Frame(master=canvas)
@@ -132,6 +135,7 @@ def idk_yet():
     canvas.grid_slaves()[1].grid_slaves()[0].config(state=tk.DISABLED)
     canvas.grid_slaves()[1].grid_slaves()[1].config(state=tk.DISABLED)
     canvas.grid_slaves()[1].grid_slaves()[2].config(state=tk.DISABLED)
+
     ## DISABLE SCAN DIRECTORY FOR NOW (Note: .grid_slaves() returns in chronologically reversed grid order
 
     parameter_label = tk.Label(master=canvas, text="Parameters", font=HEADER_FONT)
@@ -145,7 +149,7 @@ def idk_yet():
                           "0 for 'cam0_image0.png', 1 for 'cam0image  0.bmp'",
                           "Number of cameras",
                           "0 for '0 deg', 1 for '90 deg', 2 for '180 deg', 3 for '270 deg'",
-                          "The initial frame you want Event-Viewer to display",
+                          "The initial frame you want EventViewer to display",
                           "The trigger frame (defined by your DAQ)",
                           "Piezo variable name",
                           "Dytran variable name"]
@@ -180,7 +184,7 @@ def idk_yet():
 
 def run_intro():
     # Normally, I'd agree that global variables are bad and should be avoided,
-    # however in the case of an exit_code I think their use is quite appropriate.
+    # however in the case of an exit_code I think the use is appropriate.
     global exit_code
     exit_code = 0
     def _on_ok():
@@ -206,9 +210,9 @@ def run_intro():
     canvas.create_image(0, 0, anchor=tk.NW, image=_img)
     canvas.pack()
 
-    _text = "Welcome to Event-Viewer setup!\n"\
+    _text = "Welcome to EventViewer setup!\n"\
             "This tool will help you create\n"\
-            "a config file for Event-Viewer.\n"\
+            "a config file for EventViewer.\n"\
             "     Press OK to continue"
     textx, texty = rel_to_abs(0.5, 0.5, intro_h, intro_w)
     canvas.create_text(textx, texty, text=_text, anchor=tk.CENTER, font=DEFAULT_FONT)
