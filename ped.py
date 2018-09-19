@@ -103,9 +103,9 @@ class Application(tk.Frame):
         self.raw_directory = '/bluearc/storage/SBC-17-data/'
         self.base_directory, end = re.compile('\\w*-\\w*-data').split(self.raw_directory)
         self.scan_directory = '/coupp/data/home/coupp/scan_output_SBC-17/'
-        #self.reco_directory = '/pnfs/coupp/persistent/grid_output/SBC-17/output/'
-        self.reco_directory = ""
-        self.ped_directory = '/nashome/j/jgresl/Desktop/EventViewer/PEDsvn'
+        self.reco_directory = '/pnfs/coupp/persistent/grid_output/SBC-17/output/'
+        #self.reco_directory = ""
+        self.ped_directory = '/nashome/j/jgresl/Projects/EventViewer'
         self.config_file_directory = os.path.join(self.ped_directory, 'configs')
 
         # #  for running on local machine, change these based on local file location to set the correct data directories and initial dataset
@@ -1097,6 +1097,7 @@ class Application(tk.Frame):
         self.increment_PMT_trigger(-1)
         return
 
+
     def jump_to_t0_trigger(self):
         # Scan through all the times and jump to the PMT trigger closest to t=0
         if not self.draw_pmt_traces_var.get():
@@ -1104,17 +1105,18 @@ class Application(tk.Frame):
         if self.PMT_data is not None and self.align_data is not None:
             n_max = self.PMT_data["t0_sec"][:, 0].shape[0]
             times = [ ]
+            align_t0_sec = self.align_data["PMT_trigt0_sec"][self.event]
+            align_t0_frac = self.align_data["PMT_trigt0_frac"][self.event]
             for n in range(n_max):
                 # Improve this by using a binary search method in the future.
                 # Do this now as a proof of concept
                 trace_t0_sec = self.PMT_data["t0_sec"][n, 0]
                 trace_t0_frac = self.PMT_data["t0_frac"][n, 0]
-                align_t0_sec = self.align_data["PMT_trigt0_sec"][self.event]
-                align_t0_frac = self.align_data["PMT_trigt0_frac"][self.event]
                 times.append(abs(self.return_pmt_time((trace_t0_sec, trace_t0_frac), (align_t0_sec, align_t0_frac))))
             min_index = times.index(min(times))
             self.increment_PMT_trigger(min_index-self.n_PMT_trig.get())
         return
+
 
     @staticmethod
     def disable_widgets(widget_list):
@@ -1252,7 +1254,7 @@ class Application(tk.Frame):
     def load_reco(self):
         self.reco_row = None
         self.reco_events = None
-        path = os.path.join(self.reco_directory, 'reco_events.npy')
+        path = os.path.join(self.reco_directory, 'reco_eventsNOTYET.npy')
         if not os.path.isfile(path):
             logger.error('cannot find reco_data.npy, reco data will be disabled')
             self.toggle_reco_widgets(state=tk.DISABLED)
